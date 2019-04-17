@@ -1,0 +1,4 @@
+build
+*.pyc
+problems/*/run
+problems/*/output.csv

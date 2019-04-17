@@ -1,0 +1,7 @@
+n_elem 100
+temporal_order 1
+dt_option constant
+dt 0.001
+flux hllc
+slope_reconstruction minmod
+reconstruction_var_set puT
