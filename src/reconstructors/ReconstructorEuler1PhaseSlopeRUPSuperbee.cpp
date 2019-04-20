@@ -1,8 +1,9 @@
 #include "ReconstructorEuler1PhaseSlopeRUPSuperbee.h"
 #include "UtilsNumerics.h"
 
-ReconstructorEuler1PhaseSlopeRUPSuperbee::ReconstructorEuler1PhaseSlopeRUPSuperbee(const EOS1Phase & eos)
-  : ReconstructorEuler1PhaseSlopeRUP(eos)
+ReconstructorEuler1PhaseSlopeRUPSuperbee::ReconstructorEuler1PhaseSlopeRUPSuperbee(
+  const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos)
+  : ReconstructorEuler1PhaseSlopeRUP(dof_handler, eos)
 {
 }
 

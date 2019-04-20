@@ -8,7 +8,8 @@ class EOS1Phase;
 class ReconstructorEuler1PhaseSlopeRUPMinmod : public ReconstructorEuler1PhaseSlopeRUP
 {
 public:
-  ReconstructorEuler1PhaseSlopeRUPMinmod(const EOS1Phase & eos);
+  ReconstructorEuler1PhaseSlopeRUPMinmod(
+    const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos);
 
 protected:
   virtual double computeSlope(

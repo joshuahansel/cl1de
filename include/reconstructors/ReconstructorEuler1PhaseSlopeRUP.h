@@ -6,7 +6,8 @@
 class ReconstructorEuler1PhaseSlopeRUP : public ReconstructorEuler1PhaseSlope
 {
 public:
-  ReconstructorEuler1PhaseSlopeRUP(const EOS1Phase & eos);
+  ReconstructorEuler1PhaseSlopeRUP(
+    const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos);
 
 protected:
   virtual void computeSlopeVariables(

@@ -1,8 +1,9 @@
 #include "ReconstructorEuler1PhaseSlopeConservative.h"
 #include "EOS1Phase.h"
 
-ReconstructorEuler1PhaseSlopeConservative::ReconstructorEuler1PhaseSlopeConservative(const EOS1Phase & eos)
-  : ReconstructorEuler1PhaseSlope(eos)
+ReconstructorEuler1PhaseSlopeConservative::ReconstructorEuler1PhaseSlopeConservative(
+  const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos)
+  : ReconstructorEuler1PhaseSlope(dof_handler, eos)
 {
 }
 

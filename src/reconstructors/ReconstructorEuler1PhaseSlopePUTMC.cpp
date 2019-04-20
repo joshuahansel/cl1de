@@ -1,8 +1,9 @@
 #include "ReconstructorEuler1PhaseSlopePUTMC.h"
 #include "UtilsNumerics.h"
 
-ReconstructorEuler1PhaseSlopePUTMC::ReconstructorEuler1PhaseSlopePUTMC(const EOS1Phase & eos)
-  : ReconstructorEuler1PhaseSlopePUT(eos)
+ReconstructorEuler1PhaseSlopePUTMC::ReconstructorEuler1PhaseSlopePUTMC(
+  const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos)
+  : ReconstructorEuler1PhaseSlopePUT(dof_handler, eos)
 {
 }
 

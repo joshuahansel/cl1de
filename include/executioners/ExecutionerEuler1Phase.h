@@ -7,6 +7,7 @@ class EOS1Phase;
 class Function;
 class ProblemEuler1Phase;
 class RunParametersEuler1Phase;
+class DoFHandlerEuler1Phase;
 
 class ExecutionerEuler1Phase : public Executioner
 {
@@ -24,6 +25,7 @@ protected:
   const ProblemEuler1Phase & _problem;
   const RunParametersEuler1Phase & _run_params;
 
+  const DoFHandlerEuler1Phase & _dof_handler;
   const EOS1Phase & _eos;
   const Function & _A_fn;
   const Function & _r_ic_fn;

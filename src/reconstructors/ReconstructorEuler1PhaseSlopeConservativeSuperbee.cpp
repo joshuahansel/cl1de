@@ -1,8 +1,9 @@
 #include "ReconstructorEuler1PhaseSlopeConservativeSuperbee.h"
 #include "UtilsNumerics.h"
 
-ReconstructorEuler1PhaseSlopeConservativeSuperbee::ReconstructorEuler1PhaseSlopeConservativeSuperbee(const EOS1Phase & eos)
-  : ReconstructorEuler1PhaseSlopeConservative(eos)
+ReconstructorEuler1PhaseSlopeConservativeSuperbee::ReconstructorEuler1PhaseSlopeConservativeSuperbee(
+  const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos)
+  : ReconstructorEuler1PhaseSlopeConservative(dof_handler, eos)
 {
 }
 

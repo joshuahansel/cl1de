@@ -1,48 +1,67 @@
 #include "ReconstructorEuler1PhaseSlope.h"
+#include "DoFHandlerEuler1Phase.h"
 #include "EOS1Phase.h"
 
-ReconstructorEuler1PhaseSlope::ReconstructorEuler1PhaseSlope(const EOS1Phase & eos)
-  : ReconstructorEuler1Phase(),
+ReconstructorEuler1PhaseSlope::ReconstructorEuler1PhaseSlope(
+  const DoFHandlerEuler1Phase & dof_handler,
+  const EOS1Phase & eos)
+  : ReconstructorEuler1Phase(dof_handler),
     _eos(eos)
 {
 }
 
 void ReconstructorEuler1PhaseSlope::reconstructSolution(
-  const std::vector<double> & rA,
-  const std::vector<double> & ruA,
-  const std::vector<double> & rEA,
+  const std::vector<double> & U,
   const std::vector<double> & A_elem,
   const std::vector<double> & A_node,
   const std::vector<double> & x_elem,
   const std::vector<double> & x_node,
-  std::vector<double> & rA_L,
-  std::vector<double> & ruA_L,
-  std::vector<double> & rEA_L,
-  std::vector<double> & rA_R,
-  std::vector<double> & ruA_R,
-  std::vector<double> & rEA_R) const
+  std::vector<double> & U_L,
+  std::vector<double> & U_R) const
 {
-  const unsigned int n_elems = rA.size();
+  const unsigned int & n_elems = _dof_handler.numberOfElements();
 
   {
     const unsigned int ie = 0;
-    reconstructElementSolutionGodunov(
-      rA, ruA, rEA, A_elem, A_node, ie,
-      rA_L, ruA_L, rEA_L, rA_R, ruA_R, rEA_R);
+    reconstructElementSolutionGodunov(U, A_elem, A_node, ie, U_L, U_R);
   }
   for (unsigned int ie = 1; ie < n_elems - 1; ie++)
   {
     const unsigned int ieL = ie - 1;
     const unsigned int ieR = ie + 1;
 
+    const unsigned int ieL_rA = _dof_handler.elemIndex_rA(ieL);
+    const unsigned int ieL_ruA = _dof_handler.elemIndex_ruA(ieL);
+    const unsigned int ieL_rEA = _dof_handler.elemIndex_rEA(ieL);
+
+    const unsigned int ie_rA = _dof_handler.elemIndex_rA(ie);
+    const unsigned int ie_ruA = _dof_handler.elemIndex_ruA(ie);
+    const unsigned int ie_rEA = _dof_handler.elemIndex_rEA(ie);
+
+    const unsigned int ieR_rA = _dof_handler.elemIndex_rA(ieR);
+    const unsigned int ieR_ruA = _dof_handler.elemIndex_ruA(ieR);
+    const unsigned int ieR_rEA = _dof_handler.elemIndex_rEA(ieR);
+
+    const double & rA_ieL = U[ieL_rA];
+    const double & ruA_ieL = U[ieL_ruA];
+    const double & rEA_ieL = U[ieL_rEA];
+
+    const double & rA_ie = U[ie_rA];
+    const double & ruA_ie = U[ie_ruA];
+    const double & rEA_ie = U[ie_rEA];
+
+    const double & rA_ieR = U[ieR_rA];
+    const double & ruA_ieR = U[ieR_ruA];
+    const double & rEA_ieR = U[ieR_rEA];
+
     double w1_ieL, w2_ieL, w3_ieL;
-    computeSlopeVariables(rA[ieL], ruA[ieL], rEA[ieL], A_elem[ieL], w1_ieL, w2_ieL, w3_ieL);
+    computeSlopeVariables(rA_ieL, ruA_ieL, rEA_ieL, A_elem[ieL], w1_ieL, w2_ieL, w3_ieL);
 
     double w1_ie, w2_ie, w3_ie;
-    computeSlopeVariables(rA[ie], ruA[ie], rEA[ie], A_elem[ie], w1_ie, w2_ie, w3_ie);
+    computeSlopeVariables(rA_ie, ruA_ie, rEA_ie, A_elem[ie], w1_ie, w2_ie, w3_ie);
 
     double w1_ieR, w2_ieR, w3_ieR;
-    computeSlopeVariables(rA[ieR], ruA[ieR], rEA[ieR], A_elem[ieR], w1_ieR, w2_ieR, w3_ieR);
+    computeSlopeVariables(rA_ieR, ruA_ieR, rEA_ieR, A_elem[ieR], w1_ieR, w2_ieR, w3_ieR);
 
     const double x_ieL = x_elem[ieL];
     const double x_ie = x_elem[ie];
@@ -67,14 +86,12 @@ void ReconstructorEuler1PhaseSlope::reconstructSolution(
     const double w3R = w3_ie + dxR * w3_slope;
 
     computeConservativeVariables(
-      w1L, w2L, w3L, A_node[inL], rA_L[ie], ruA_L[ie], rEA_L[ie]);
+      w1L, w2L, w3L, A_node[inL], U_L[ie_rA], U_L[ie_ruA], U_L[ie_rEA]);
     computeConservativeVariables(
-      w1R, w2R, w3R, A_node[inR], rA_R[ie], ruA_R[ie], rEA_R[ie]);
+      w1R, w2R, w3R, A_node[inR], U_R[ie_rA], U_R[ie_ruA], U_R[ie_rEA]);
   }
   {
     const unsigned int ie = n_elems - 1;
-    reconstructElementSolutionGodunov(
-      rA, ruA, rEA, A_elem, A_node, ie,
-      rA_L, ruA_L, rEA_L, rA_R, ruA_R, rEA_R);
+    reconstructElementSolutionGodunov(U, A_elem, A_node, ie, U_L, U_R);
   }
 }

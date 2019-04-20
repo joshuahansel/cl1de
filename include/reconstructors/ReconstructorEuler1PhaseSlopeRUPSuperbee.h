@@ -8,7 +8,8 @@ class EOS1Phase;
 class ReconstructorEuler1PhaseSlopeRUPSuperbee : public ReconstructorEuler1PhaseSlopeRUP
 {
 public:
-  ReconstructorEuler1PhaseSlopeRUPSuperbee(const EOS1Phase & eos);
+  ReconstructorEuler1PhaseSlopeRUPSuperbee(
+    const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos);
 
 protected:
   virtual double computeSlope(

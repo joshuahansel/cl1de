@@ -8,7 +8,8 @@ class EOS1Phase;
 class ReconstructorEuler1PhaseSlopePUTMC : public ReconstructorEuler1PhaseSlopePUT
 {
 public:
-  ReconstructorEuler1PhaseSlopePUTMC(const EOS1Phase & eos);
+  ReconstructorEuler1PhaseSlopePUTMC(
+    const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos);
 
 protected:
   virtual double computeSlope(

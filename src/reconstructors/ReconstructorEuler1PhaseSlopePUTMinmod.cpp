@@ -1,8 +1,9 @@
 #include "ReconstructorEuler1PhaseSlopePUTMinmod.h"
 #include "UtilsNumerics.h"
 
-ReconstructorEuler1PhaseSlopePUTMinmod::ReconstructorEuler1PhaseSlopePUTMinmod(const EOS1Phase & eos)
-  : ReconstructorEuler1PhaseSlopePUT(eos)
+ReconstructorEuler1PhaseSlopePUTMinmod::ReconstructorEuler1PhaseSlopePUTMinmod(
+  const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos)
+  : ReconstructorEuler1PhaseSlopePUT(dof_handler, eos)
 {
 }
 

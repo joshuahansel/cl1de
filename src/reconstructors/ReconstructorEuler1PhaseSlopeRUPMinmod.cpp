@@ -1,8 +1,9 @@
 #include "ReconstructorEuler1PhaseSlopeRUPMinmod.h"
 #include "UtilsNumerics.h"
 
-ReconstructorEuler1PhaseSlopeRUPMinmod::ReconstructorEuler1PhaseSlopeRUPMinmod(const EOS1Phase & eos)
-  : ReconstructorEuler1PhaseSlopeRUP(eos)
+ReconstructorEuler1PhaseSlopeRUPMinmod::ReconstructorEuler1PhaseSlopeRUPMinmod(
+  const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos)
+  : ReconstructorEuler1PhaseSlopeRUP(dof_handler, eos)
 {
 }
 

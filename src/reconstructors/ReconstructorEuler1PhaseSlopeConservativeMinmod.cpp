@@ -1,8 +1,9 @@
 #include "ReconstructorEuler1PhaseSlopeConservativeMinmod.h"
 #include "UtilsNumerics.h"
 
-ReconstructorEuler1PhaseSlopeConservativeMinmod::ReconstructorEuler1PhaseSlopeConservativeMinmod(const EOS1Phase & eos)
-  : ReconstructorEuler1PhaseSlopeConservative(eos)
+ReconstructorEuler1PhaseSlopeConservativeMinmod::ReconstructorEuler1PhaseSlopeConservativeMinmod(
+  const DoFHandlerEuler1Phase & dof_handler, const EOS1Phase & eos)
+  : ReconstructorEuler1PhaseSlopeConservative(dof_handler, eos)
 {
 }
 

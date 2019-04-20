@@ -16,7 +16,8 @@
 
 RunParametersEuler1Phase::RunParametersEuler1Phase(int argc, char* argv[], const EOS1Phase & eos)
   : RunParameters(argc, argv),
-    _eos(eos)
+    _eos(eos),
+    _dof_handler(DoFHandlerEuler1Phase(_n_elem))
 {
   // flux
   const std::string flux_option = getStringParameter("flux");
@@ -30,16 +31,16 @@ RunParametersEuler1Phase::RunParametersEuler1Phase(int argc, char* argv[], const
   // reconstructor
   const std::string slope_reconstruction = getStringParameter("slope_reconstruction");
   if (slope_reconstruction == "none")
-    _reconstructor = std::make_shared<ReconstructorEuler1PhaseGodunov>();
+    _reconstructor = std::make_shared<ReconstructorEuler1PhaseGodunov>(_dof_handler);
   else if (slope_reconstruction == "minmod")
   {
     const std::string reconstruction_var_set = getStringParameter("reconstruction_var_set");
     if (reconstruction_var_set == "conservative")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeConservativeMinmod>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeConservativeMinmod>(_dof_handler, _eos);
     else if (reconstruction_var_set == "puT")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopePUTMinmod>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopePUTMinmod>(_dof_handler, _eos);
     else if (reconstruction_var_set == "rup")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeRUPMinmod>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeRUPMinmod>(_dof_handler, _eos);
     else
       throwInvalidStringParameterValueError("reconstruction_var_set", reconstruction_var_set);
   }
@@ -47,11 +48,11 @@ RunParametersEuler1Phase::RunParametersEuler1Phase(int argc, char* argv[], const
   {
     const std::string reconstruction_var_set = getStringParameter("reconstruction_var_set");
     if (reconstruction_var_set == "conservative")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeConservativeMC>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeConservativeMC>(_dof_handler, _eos);
     else if (reconstruction_var_set == "puT")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopePUTMC>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopePUTMC>(_dof_handler, _eos);
     else if (reconstruction_var_set == "rup")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeRUPMC>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeRUPMC>(_dof_handler, _eos);
     else
       throwInvalidStringParameterValueError("reconstruction_var_set", reconstruction_var_set);
   }
@@ -59,11 +60,11 @@ RunParametersEuler1Phase::RunParametersEuler1Phase(int argc, char* argv[], const
   {
     const std::string reconstruction_var_set = getStringParameter("reconstruction_var_set");
     if (reconstruction_var_set == "conservative")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeConservativeSuperbee>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeConservativeSuperbee>(_dof_handler, _eos);
     else if (reconstruction_var_set == "puT")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopePUTSuperbee>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopePUTSuperbee>(_dof_handler, _eos);
     else if (reconstruction_var_set == "rup")
-      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeRUPSuperbee>(_eos);
+      _reconstructor = std::make_shared<ReconstructorEuler1PhaseSlopeRUPSuperbee>(_dof_handler, _eos);
     else
       throwInvalidStringParameterValueError("reconstruction_var_set", reconstruction_var_set);
   }
