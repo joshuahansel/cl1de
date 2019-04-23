@@ -71,6 +71,8 @@ void ExecutionerEuler1Phase::run()
 
   const unsigned int & n_vars = _dof_handler.nVars();
 
+  std::vector<double> ss_rhs(n_dofs, 0.0);
+
   // transient
   unsigned int k = 1; // time step index
   while (_in_transient)
@@ -140,16 +142,16 @@ void ExecutionerEuler1Phase::run()
         const double e = E - 0.5 * u * u;
         const double p = _eos.p_from_r_e(r, e);
 
-        U[s][i_rA] = _rk_b[s-1] * dt * (f[i][0] - f[i + 1][0]) / _dx;
-        U[s][i_ruA] = _rk_b[s-1] * dt * (f[i][1] - f[i + 1][1] + p * (_A_node[i + 1] - _A_node[i])) / _dx;
-        U[s][i_rEA] = _rk_b[s-1] * dt * (f[i][2] - f[i + 1][2]) / _dx;
+        ss_rhs[i_rA] = (f[i][0] - f[i + 1][0]) / _dx;
+        ss_rhs[i_ruA] = (f[i][1] - f[i + 1][1] + p * (_A_node[i + 1] - _A_node[i])) / _dx;
+        ss_rhs[i_rEA] = (f[i][2] - f[i + 1][2]) / _dx;
+      }
 
+      for (unsigned int i = 0; i < n_dofs; i++)
+      {
+        U[s][i] = _rk_b[s-1] * dt * ss_rhs[i];
         for (unsigned int k = 0; k <= s - 1; k++)
-        {
-          U[s][i_rA] += _rk_a[s-1][k] * U[k][i_rA];
-          U[s][i_ruA] += _rk_a[s-1][k] * U[k][i_ruA];
-          U[s][i_rEA] += _rk_a[s-1][k] * U[k][i_rEA];
-        }
+          U[s][i] += _rk_a[s-1][k] * U[k][i];
       }
     }
 
