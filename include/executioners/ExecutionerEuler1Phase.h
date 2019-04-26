@@ -3,9 +3,12 @@
 
 #include "Executioner.h"
 
+class BCEuler1Phase;
 class EOS1Phase;
+class FluxEuler1Phase;
 class Function;
 class ProblemEuler1Phase;
+class ReconstructorEuler1Phase;
 class RunParametersEuler1Phase;
 class DoFHandlerEuler1Phase;
 
@@ -16,9 +19,13 @@ public:
     const ProblemEuler1Phase & problem,
     const RunParametersEuler1Phase & run_params);
 
-  void run();
-
 protected:
+  virtual void initializeSolution(std::vector<double> & U) const override;
+  virtual double computeMaxWaveSpeed(const std::vector<double> & U) const override;
+  virtual void computeSteadyStateResidual(
+    const std::vector<double> & U, std::vector<double> & ss_rhs) const override;
+  virtual void outputSolution(const std::vector<double> & U) const override;
+
   std::vector<double> computeAreaNode() const;
   std::vector<double> computeAreaElem() const;
 
@@ -31,6 +38,10 @@ protected:
   const Function & _r_ic_fn;
   const Function & _u_ic_fn;
   const Function & _p_ic_fn;
+  const BCEuler1Phase & _bc_left;
+  const BCEuler1Phase & _bc_right;
+  const FluxEuler1Phase & _flux;
+  const ReconstructorEuler1Phase & _reconstructor;
 
   const std::vector<double> _A_node;
   const std::vector<double> _A_elem;

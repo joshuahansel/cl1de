@@ -12,7 +12,11 @@ class Executioner
 public:
   Executioner(
     const Problem & problem,
-    const RunParameters & run_params);
+    const RunParameters & run_params,
+    const unsigned int & n_dofs,
+    const unsigned int & n_vars);
+
+  void run();
 
 protected:
   double computeElemSize() const;
@@ -23,8 +27,16 @@ protected:
   std::vector<std::vector<double>> initializeRungeKuttaSolutionCoefs() const;
   std::vector<double> initializeRungeKuttaTimeStepCoefs() const;
 
+  virtual void initializeSolution(std::vector<double> & U) const = 0;
+  virtual double computeMaxWaveSpeed(const std::vector<double> & U) const = 0;
+  virtual void computeSteadyStateResidual(
+    const std::vector<double> & U, std::vector<double> & ss_rhs) const = 0;
+  virtual void outputSolution(const std::vector<double> & U) const = 0;
+
   const Problem & _problem_base;
   const RunParameters & _run_params_base;
+  const unsigned int _n_vars;
+  const unsigned int _n_dofs;
 
   const unsigned int & _n_elems;
   const unsigned int _n_nodes;

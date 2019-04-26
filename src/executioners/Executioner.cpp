@@ -1,13 +1,22 @@
 #include "Executioner.h"
 #include "Problem.h"
 #include "RunParameters.h"
+#include "TimeStepSizer.h"
 #include "utils.h"
+#include "UtilsNumerics.h"
+
+#include <iostream>
+#include <vector>
 
 Executioner::Executioner(
   const Problem & problem,
-  const RunParameters & run_params)
+  const RunParameters & run_params,
+  const unsigned int & n_dofs,
+  const unsigned int & n_vars)
   : _problem_base(problem),
     _run_params_base(run_params),
+    _n_dofs(n_dofs),
+    _n_vars(n_vars),
 
     _n_elems(_run_params_base.getNumberOfElements()),
     _n_nodes(_n_elems + 1),
@@ -25,6 +34,53 @@ Executioner::Executioner(
 
     _in_transient(true)
 {
+}
+
+void Executioner::run()
+{
+  std::vector<std::vector<double>> U(_n_stages + 1, std::vector<double>(_n_dofs, 0));
+
+  // initialize
+  initializeSolution(U[0]);
+
+  std::vector<double> ss_rhs(_n_dofs, 0.0);
+
+  // transient
+  double t = 0.0;
+  unsigned int k = 1; // time step index
+  while (_in_transient)
+  {
+    const double max_wave_speed = computeMaxWaveSpeed(U[0]);
+    const double dt_nominal = _time_step_sizer.computeTimeStepSize(max_wave_speed, _dx_min);
+
+    // Check dt does not over-extend end time and flag end of transient
+    const double dt = getTimeStepSizeAndUpdateTransientFlag(dt_nominal, t);
+
+    const double CFL = Numerics::computeCFL(dt, max_wave_speed, _dx_min);
+
+    std::cout << "Time step " << k << ": t = " << t + dt << " s, dt = " << dt
+      << " s, CFL = " << CFL << std::endl;
+
+    for (unsigned int s = 1; s < _n_stages+1; s++)
+    {
+      computeSteadyStateResidual(U[s-1], ss_rhs);
+
+      for (unsigned int i = 0; i < _n_dofs; i++)
+      {
+        U[s][i] = _rk_b[s-1] * dt * ss_rhs[i];
+        for (unsigned int k = 0; k <= s - 1; k++)
+          U[s][i] += _rk_a[s-1][k] * U[k][i];
+      }
+    }
+
+    U[0] = U[_n_stages];
+
+    t += dt;
+    k += 1;
+  }
+
+  // output
+  outputSolution(U[0]);
 }
 
 double Executioner::computeElemSize() const
