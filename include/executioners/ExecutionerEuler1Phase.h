@@ -7,6 +7,7 @@ class BCEuler1Phase;
 class EOS1Phase;
 class FluxEuler1Phase;
 class Function;
+class ICsEuler1Phase;
 class ProblemEuler1Phase;
 class ReconstructorEuler1Phase;
 class RunParametersEuler1Phase;
@@ -35,9 +36,7 @@ protected:
   const DoFHandlerEuler1Phase & _dof_handler;
   const EOS1Phase & _eos;
   const Function & _A_fn;
-  const Function & _r_ic_fn;
-  const Function & _u_ic_fn;
-  const Function & _p_ic_fn;
+  const ICsEuler1Phase & _ics;
   const BCEuler1Phase & _bc_left;
   const BCEuler1Phase & _bc_right;
   const FluxEuler1Phase & _flux;

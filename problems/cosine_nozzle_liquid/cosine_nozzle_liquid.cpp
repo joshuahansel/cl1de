@@ -5,7 +5,7 @@
 #include "FluxEuler1Phase.h"
 #include "FunctionConstant.h"
 #include "FunctionCosineHump.h"
-#include "FunctionDensityFromPressureTemperature.h"
+#include "ICsEuler1PhasePUT.h"
 #include "ProblemEuler1Phase.h"
 #include "RunParametersEuler1Phase.h"
 
@@ -27,11 +27,9 @@ int main(int argc, char* argv[])
   FunctionConstant velocity_ic(0.0);
   FunctionConstant pressure_ic(p0_inlet);
   FunctionConstant temperature_ic(T0_inlet);
-  FunctionDensityFromPressureTemperature density_ic(eos, pressure_ic, temperature_ic);
+  ICsEuler1PhasePUT ics(pressure_ic, velocity_ic, temperature_ic, eos);
   problem.setAreaFunction(area);
-  problem.setICDensity(density_ic);
-  problem.setICVelocity(velocity_ic);
-  problem.setICPressure(pressure_ic);
+  problem.setICs(ics);
 
   const FluxEuler1Phase & flux = run_params.getFlux();
   BCEuler1PhaseGhostStagnation left_bc(true, eos, flux, p0_inlet, T0_inlet);

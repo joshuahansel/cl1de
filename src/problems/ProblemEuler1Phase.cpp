@@ -1,5 +1,6 @@
 #include "ProblemEuler1Phase.h"
 #include "Function.h"
+#include "ICsEuler1Phase.h"
 #include "EOS1Phase.h"
 #include "BCEuler1Phase.h"
 
@@ -12,19 +13,9 @@ void ProblemEuler1Phase::setAreaFunction(const Function & function)
   _A_fn = &function;
 }
 
-void ProblemEuler1Phase::setICDensity(const Function & function)
+void ProblemEuler1Phase::setICs(const ICsEuler1Phase & ics)
 {
-  _r_ic_fn = &function;
-}
-
-void ProblemEuler1Phase::setICVelocity(const Function & function)
-{
-  _u_ic_fn = &function;
-}
-
-void ProblemEuler1Phase::setICPressure(const Function & function)
-{
-  _p_ic_fn = &function;
+  _ics = &ics;
 }
 
 void ProblemEuler1Phase::setEOS(const EOS1Phase & eos)

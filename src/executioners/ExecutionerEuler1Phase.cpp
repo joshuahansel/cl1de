@@ -2,6 +2,7 @@
 #include "ProblemEuler1Phase.h"
 #include "RunParametersEuler1Phase.h"
 #include "DoFHandlerEuler1Phase.h"
+#include "ICsEuler1Phase.h"
 #include "BCEuler1Phase.h"
 #include "ReconstructorEuler1Phase.h"
 #include "FluxEuler1Phase.h"
@@ -19,9 +20,7 @@ ExecutionerEuler1Phase::ExecutionerEuler1Phase(
     _dof_handler(run_params.getDoFHandler()),
     _eos(problem.getEOS()),
     _A_fn(problem.getAreaFunction()),
-    _r_ic_fn(problem.getICDensity()),
-    _u_ic_fn(problem.getICVelocity()),
-    _p_ic_fn(problem.getICPressure()),
+    _ics(problem.getICs()),
     _bc_left(_problem.getBCLeft()),
     _bc_right(_problem.getBCRight()),
     _flux(_run_params.getFlux()),
@@ -36,20 +35,11 @@ void ExecutionerEuler1Phase::initializeSolution(std::vector<double> & U) const
 {
   for (unsigned int i = 0; i < _n_elems; i++)
   {
-    const double r = _r_ic_fn.value(_x_elem[i], 0);
-    const double u = _u_ic_fn.value(_x_elem[i], 0);
-    const double p = _p_ic_fn.value(_x_elem[i], 0);
-
-    const double e = _eos.e_from_p_r(p, r);
-    const double E = e + 0.5 * u * u;
-
     const unsigned int i_rA = _dof_handler.elemIndex_rA(i);
     const unsigned int i_ruA = _dof_handler.elemIndex_ruA(i);
     const unsigned int i_rEA = _dof_handler.elemIndex_rEA(i);
 
-    U[i_rA] = r * _A_elem[i];
-    U[i_ruA] = r * u * _A_elem[i];
-    U[i_rEA] = r * E * _A_elem[i];
+    _ics.computeICs(_x_elem[i], _A_elem[i], U[i_rA], U[i_ruA], U[i_rEA]);
   }
 }
 
