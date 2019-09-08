@@ -4,7 +4,7 @@
 #include "EOS1Phase.h"
 #include "BCEuler1Phase.h"
 
-ProblemEuler1Phase::ProblemEuler1Phase() : Problem()
+ProblemEuler1Phase::ProblemEuler1Phase() : Problem(), _gravity(0.0)
 {
 }
 
@@ -31,4 +31,9 @@ void ProblemEuler1Phase::setBCLeft(const BCEuler1Phase & bc)
 void ProblemEuler1Phase::setBCRight(const BCEuler1Phase & bc)
 {
   _bc_right = &bc;
+}
+
+void ProblemEuler1Phase::setGravity(const double & gravity)
+{
+  _gravity = gravity;
 }

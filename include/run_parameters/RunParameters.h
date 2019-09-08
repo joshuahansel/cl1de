@@ -13,6 +13,7 @@ public:
   RunParameters(int argc, char* argv[]);
 
   std::string getStringParameter(const std::string & name);
+  bool getBoolParameter(const std::string & name);
   unsigned int getIntParameter(const std::string & name);
   double getFloatParameter(const std::string & name);
 

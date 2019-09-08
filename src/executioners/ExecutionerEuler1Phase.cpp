@@ -23,6 +23,7 @@ ExecutionerEuler1Phase::ExecutionerEuler1Phase(
     _ics(problem.getICs()),
     _bc_left(_problem.getBCLeft()),
     _bc_right(_problem.getBCRight()),
+    _gravity(_problem.getGravity()),
     _flux(_run_params.getFlux()),
     _reconstructor(_run_params.getReconstructor()),
 
@@ -106,8 +107,11 @@ void ExecutionerEuler1Phase::computeSteadyStateResidual(
     const double p = _eos.p_from_r_e(r, e);
 
     ss_rhs[i_rA] = (f[i][0] - f[i + 1][0]) / _dx;
-    ss_rhs[i_ruA] = (f[i][1] - f[i + 1][1] + p * (_A_node[i + 1] - _A_node[i])) / _dx;
-    ss_rhs[i_rEA] = (f[i][2] - f[i + 1][2]) / _dx;
+    ss_rhs[i_ruA] = (f[i][1] - f[i + 1][1]
+      + p * (_A_node[i + 1] - _A_node[i])) / _dx
+      + r * _gravity * _A_elem[i];
+    ss_rhs[i_rEA] = (f[i][2] - f[i + 1][2]) / _dx
+      + r * u * _gravity * _A_elem[i];
   }
 }
 

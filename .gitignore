@@ -1,5 +1,8 @@
 build
 run_tests
 *.pyc
+*.pdf
+*.html
 problems/*/run
 problems/*/output.csv
+problems/*/*/*

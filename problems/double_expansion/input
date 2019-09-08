@@ -1,0 +1,8 @@
+n_elem 200
+temporal_order 1
+dt_option cfl
+cfl 0.8
+flux hllc
+slope_reconstruction minmod
+use_infinite_velocity_relaxation false
+use_infinite_pressure_relaxation true

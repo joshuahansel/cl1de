@@ -90,6 +90,19 @@ std::string RunParameters::getStringParameter(const std::string & name)
   return _param_map.at(name);
 }
 
+bool RunParameters::getBoolParameter(const std::string & name)
+{
+  checkParameterExists(name);
+  _param_used_map[name] = true;
+  const std::string & value = _param_map.at(name);
+  if (value == "true")
+    return true;
+  else if (value == "false")
+    return false;
+  else
+    throwError("Invalid value for parameter '" + name + "': '" + value + "'. Valid values are 'true' and 'false'.");
+}
+
 unsigned int RunParameters::getIntParameter(const std::string & name)
 {
   checkParameterExists(name);

@@ -73,6 +73,8 @@ void Executioner::run()
       }
     }
 
+    performPostStep(U[_n_stages], dt);
+
     U[0] = U[_n_stages];
 
     t += dt;
@@ -81,6 +83,10 @@ void Executioner::run()
 
   // output
   outputSolution(U[0]);
+}
+
+void Executioner::performPostStep(std::vector<double> & /*U*/, const double & /*dt*/) const
+{
 }
 
 double Executioner::computeElemSize() const
@@ -147,6 +153,8 @@ std::vector<std::vector<double>> Executioner::initializeRungeKuttaSolutionCoefs(
     a[0][0] = 1.0;
     a[1][0] = 0.5;
     a[1][1] = 0.5;
+    // a[0][0] = 1.0;
+    // a[1][0] = 1.0;
   }
   else if (_n_stages == 3)
   {
@@ -174,6 +182,8 @@ std::vector<double> Executioner::initializeRungeKuttaTimeStepCoefs() const
   {
     b[0] = 1.0;
     b[1] = 0.5;
+    // b[0] = 0.5;
+    // b[1] = 1.0;
   }
   else if (_n_stages == 3)
   {

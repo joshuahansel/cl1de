@@ -1,0 +1,7 @@
+n_elem 100
+temporal_order 1
+dt_option constant
+dt 1e-6
+t 1e-4
+flux hllc
+slope_reconstruction none

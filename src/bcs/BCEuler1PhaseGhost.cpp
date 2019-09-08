@@ -1,8 +1,6 @@
 #include "BCEuler1PhaseGhost.h"
 #include "FluxEuler1Phase.h"
 
-#include <iostream>
-
 BCEuler1PhaseGhost::BCEuler1PhaseGhost(
   bool is_left,
   const EOS1Phase & eos,

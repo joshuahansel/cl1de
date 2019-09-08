@@ -18,12 +18,14 @@ public:
   void setEOS(const EOS1Phase & eos);
   void setBCLeft(const BCEuler1Phase & bc);
   void setBCRight(const BCEuler1Phase & bc);
+  void setGravity(const double & gravity);
 
   const Function & getAreaFunction() const {return *_A_fn;}
   const ICsEuler1Phase & getICs() const {return *_ics;}
   const EOS1Phase & getEOS() const {return *_eos;}
   const BCEuler1Phase & getBCLeft() const {return *_bc_left;}
   const BCEuler1Phase & getBCRight() const {return *_bc_right;}
+  const double & getGravity() const {return _gravity;}
 
 protected:
   const Function * _A_fn;
@@ -31,6 +33,7 @@ protected:
   const EOS1Phase * _eos;
   const BCEuler1Phase * _bc_left;
   const BCEuler1Phase * _bc_right;
+  double _gravity;
 };
 
 #endif /* ProblemEuler1Phase_H */

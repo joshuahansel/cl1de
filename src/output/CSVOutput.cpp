@@ -1,5 +1,6 @@
 #include "CSVOutput.h"
 #include "utils.h"
+#include <iomanip>
 
 CSVOutput::CSVOutput(const std::string & name) : _name(name)
 {
@@ -24,6 +25,8 @@ void CSVOutput::save()
   for (unsigned int i = 0; i < n_outputs; i++)
     if (_data_vectors[i]->size() != n)
       throwError("All vectors must have the same length.", __PRETTY_FUNCTION__);
+
+  _outfile << std::setprecision(15);
 
   // output header row
   _outfile << _data_names[0];

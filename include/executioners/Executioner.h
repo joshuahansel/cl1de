@@ -31,6 +31,7 @@ protected:
   virtual double computeMaxWaveSpeed(const std::vector<double> & U) const = 0;
   virtual void computeSteadyStateResidual(
     const std::vector<double> & U, std::vector<double> & ss_rhs) const = 0;
+  virtual void performPostStep(std::vector<double> & U, const double & dt) const;
   virtual void outputSolution(const std::vector<double> & U) const = 0;
 
   const Problem & _problem_base;

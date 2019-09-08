@@ -39,6 +39,7 @@ protected:
   const ICsEuler1Phase & _ics;
   const BCEuler1Phase & _bc_left;
   const BCEuler1Phase & _bc_right;
+  const double & _gravity;
   const FluxEuler1Phase & _flux;
   const ReconstructorEuler1Phase & _reconstructor;
 

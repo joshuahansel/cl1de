@@ -27,6 +27,9 @@ public:
 
   virtual double r_from_h_s(const double & h, const double & s) const override;
 
+  const double & getGamma() const {return _gamma;}
+  const double & getReferencePressure() const {return _p_inf;}
+
 protected:
   const double _gamma;
   const double _cv;
