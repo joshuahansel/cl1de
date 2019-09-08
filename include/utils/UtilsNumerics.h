@@ -10,6 +10,9 @@ namespace Numerics
 
   double maxmod(const double & a, const double & b);
 
+  double computeSlopeFull(
+    const double & U_L, const double & U, const double & U_R,
+    const double & x_L, const double & x, const double & x_R);
   double computeSlopeMinmod(
     const double & U_L, const double & U, const double & U_R,
     const double & x_L, const double & x, const double & x_R);

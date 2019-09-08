@@ -2,6 +2,7 @@
 #include "EOS1Phase.h"
 #include "FluxEuler2PhaseHLLC.h"
 #include "ReconstructorEuler2PhaseGodunov.h"
+#include "ReconstructorEuler2PhaseSlopePUTFull.h"
 #include "ReconstructorEuler2PhaseSlopePUTMC.h"
 #include "ReconstructorEuler2PhaseSlopePUTMinmod.h"
 #include "ReconstructorEuler2PhaseSlopePUTSuperbee.h"
@@ -25,6 +26,8 @@ RunParametersEuler2Phase::RunParametersEuler2Phase(
   const std::string slope_reconstruction = getStringParameter("slope_reconstruction");
   if (slope_reconstruction == "none")
     _reconstructor = std::make_shared<ReconstructorEuler2PhaseGodunov>(_dof_handler);
+  else if (slope_reconstruction == "full")
+    _reconstructor = std::make_shared<ReconstructorEuler2PhaseSlopePUTFull>(_dof_handler, _eos_liq, _eos_vap);
   else if (slope_reconstruction == "mc")
     _reconstructor = std::make_shared<ReconstructorEuler2PhaseSlopePUTMC>(_dof_handler, _eos_liq, _eos_vap);
   else if (slope_reconstruction == "minmod")
