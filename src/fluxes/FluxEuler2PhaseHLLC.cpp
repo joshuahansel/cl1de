@@ -8,7 +8,7 @@
 #include <sstream>
 
 FluxEuler2PhaseHLLC::FluxEuler2PhaseHLLC(const EOS1Phase & eos_liq, const EOS1Phase & eos_vap)
-  : FluxEuler2Phase(eos_liq, eos_vap), _last_region_indices(_n_phases)
+  : FluxEuler2Phase(eos_liq, eos_vap), _last_region_indices(_n_phases), _a(_n_phases, std::vector<double>(_n_sides))
 {
 }
 
@@ -19,8 +19,34 @@ void FluxEuler2PhaseHLLC::computeFlux(
   std::vector<double> & f_L,
   std::vector<double> & f_R) const
 {
+  const auto f_cons = computeConservativeFlux(U_L, U_R, A);
+  const auto f_noncons = Euler2Phase::computeNonConservativePhaseFlux(_u_int, _p_int, A);
+
+  f_L[0] = f_cons[liq][0] + _a[liq][L] * f_noncons[0];
+  f_L[1] = f_cons[liq][1] + _a[liq][L] * f_noncons[1];
+  f_L[2] = f_cons[liq][2] + _a[liq][L] * f_noncons[2];
+  f_L[3] = f_cons[liq][3] + _a[liq][L] * f_noncons[3];
+  f_L[4] = f_cons[vap][1] + _a[vap][L] * f_noncons[1];
+  f_L[5] = f_cons[vap][2] + _a[vap][L] * f_noncons[2];
+  f_L[6] = f_cons[vap][3] + _a[vap][L] * f_noncons[3];
+
+  f_R[0] = f_cons[liq][0] + _a[liq][R] * f_noncons[0];
+  f_R[1] = f_cons[liq][1] + _a[liq][R] * f_noncons[1];
+  f_R[2] = f_cons[liq][2] + _a[liq][R] * f_noncons[2];
+  f_R[3] = f_cons[liq][3] + _a[liq][R] * f_noncons[3];
+  f_R[4] = f_cons[vap][1] + _a[vap][R] * f_noncons[1];
+  f_R[5] = f_cons[vap][2] + _a[vap][R] * f_noncons[2];
+  f_R[6] = f_cons[vap][3] + _a[vap][R] * f_noncons[3];
+}
+
+std::vector<std::vector<double>> FluxEuler2PhaseHLLC::computeConservativeFlux(
+  const std::vector<double> & U_L,
+  const std::vector<double> & U_R,
+  const double & A) const
+{
   const std::vector<std::vector<double>> U {U_L, U_R};
 
+  // unpack data
   std::vector<std::vector<double>> aA(_n_phases, std::vector<double>(_n_sides));
   std::vector<std::vector<double>> arA(_n_phases, std::vector<double>(_n_sides));
   std::vector<std::vector<double>> aruA(_n_phases, std::vector<double>(_n_sides));
@@ -38,7 +64,7 @@ void FluxEuler2PhaseHLLC::computeFlux(
     aA[vap][i] = (1.0 - aA[liq][i] / A) * A;
   }
 
-  std::vector<std::vector<double>> a(_n_phases, std::vector<double>(_n_sides));
+  // compute and store primitive variables
   std::vector<std::vector<double>> r(_n_phases, std::vector<double>(_n_sides));
   std::vector<std::vector<double>> u(_n_phases, std::vector<double>(_n_sides));
   std::vector<std::vector<double>> E(_n_phases, std::vector<double>(_n_sides));
@@ -51,15 +77,15 @@ void FluxEuler2PhaseHLLC::computeFlux(
   {
     for (unsigned int k = 0; k < _n_phases; k++)
     {
-      a[k][i] = aA[k][i] / A;
-      r[k][i] = arA[k][i] / (a[k][i] * A);
+      _a[k][i] = aA[k][i] / A;
+      r[k][i] = arA[k][i] / (_a[k][i] * A);
       u[k][i] = aruA[k][i] / arA[k][i];
       E[k][i] = arEA[k][i] / arA[k][i];
       e[k][i] = E[k][i] - 0.5 * u[k][i] * u[k][i];
       p[k][i] = _eos[k]->p_from_r_e(r[k][i], e[k][i]);
       c[k][i] = _eos[k]->c_from_r_e(r[k][i], e[k][i]);
 
-      W[k][i][Euler2Phase::ia] = a[k][i];
+      W[k][i][Euler2Phase::ia] = _a[k][i];
       W[k][i][Euler2Phase::ir] = r[k][i];
       W[k][i][Euler2Phase::iu] = u[k][i];
       W[k][i][Euler2Phase::ip] = p[k][i];
@@ -67,6 +93,7 @@ void FluxEuler2PhaseHLLC::computeFlux(
     }
   }
 
+  // compute tentative wave speeds
   std::vector<std::vector<double>> St(_n_phases, std::vector<double>(_n_sides));
   for (unsigned int k = 0; k < _n_phases; k++)
   {
@@ -74,36 +101,36 @@ void FluxEuler2PhaseHLLC::computeFlux(
     St[k][R] = std::max(u[k][L] + c[k][L], u[k][R] + c[k][R]);
   }
 
-  const unsigned int kk = a[liq][L] < a[liq][R] ? vap : liq;
-  const unsigned int jj = a[liq][L] < a[liq][R] ? liq : vap;
-  const double u_int = ((r[jj][R] * u[jj][R] * (u[jj][R] - St[jj][R]) + p[jj][R]) - (r[kk][L] * u[kk][L] * (u[kk][L] - St[kk][L]) + p[kk][L]))
+  // compute interfacial velocity and pressure
+  const unsigned int kk = _a[liq][L] < _a[liq][R] ? vap : liq;
+  const unsigned int jj = _a[liq][L] < _a[liq][R] ? liq : vap;
+  _u_int = ((r[jj][R] * u[jj][R] * (u[jj][R] - St[jj][R]) + p[jj][R]) - (r[kk][L] * u[kk][L] * (u[kk][L] - St[kk][L]) + p[kk][L]))
     / ((r[jj][R] * (u[jj][R] - St[jj][R])) - (r[kk][L] * (u[kk][L] - St[kk][L])));
-  const double p_int = r[jj][R] * (u[jj][R] - St[jj][R]) * (u[jj][R] - u_int) + p[jj][R];
+  _p_int = r[jj][R] * (u[jj][R] - St[jj][R]) * (u[jj][R] - _u_int) + p[jj][R];
 
+  // compute limited wave speeds
   std::vector<std::vector<double>> S(_n_phases, std::vector<double>(_n_sides));
   std::vector<double> SM(_n_phases);
   for (unsigned int k = 0; k < _n_phases; k++)
   {
-    S[k][L] = u_int < St[k][L] + 0.1 * std::abs(St[k][L]) ? std::min(St[liq][L], St[vap][L]) : St[k][L];
-    S[k][R] = u_int > St[k][R] - 0.1 * std::abs(St[k][R]) ? std::max(St[liq][R], St[vap][R]) : St[k][R];
+    S[k][L] = _u_int < St[k][L] + 0.1 * std::abs(St[k][L]) ? std::min(St[liq][L], St[vap][L]) : St[k][L];
+    S[k][R] = _u_int > St[k][R] - 0.1 * std::abs(St[k][R]) ? std::max(St[liq][R], St[vap][R]) : St[k][R];
     SM[k] = (
-        (a[k][R] * r[k][R] * u[k][R] * (u[k][R] - S[k][R]) + a[k][R] * p[k][R])
-      - (a[k][L] * r[k][L] * u[k][L] * (u[k][L] - S[k][L]) + a[k][L] * p[k][L])
-      + (a[k][L] - a[k][R]) * p_int
+        (_a[k][R] * r[k][R] * u[k][R] * (u[k][R] - S[k][R]) + _a[k][R] * p[k][R])
+      - (_a[k][L] * r[k][L] * u[k][L] * (u[k][L] - S[k][L]) + _a[k][L] * p[k][L])
+      + (_a[k][L] - _a[k][R]) * _p_int
     ) / (
-        (a[k][R] * r[k][R] * (u[k][R] - S[k][R]))
-      - (a[k][L] * r[k][L] * (u[k][L] - S[k][L]))
+        (_a[k][R] * r[k][R] * (u[k][R] - S[k][R]))
+      - (_a[k][L] * r[k][L] * (u[k][L] - S[k][L]))
     );
   }
 
-  const std::vector<double> f_noncons = Euler2Phase::computeNonConservativePhaseFlux(u_int, p_int, A);
-
-  std::vector<std::vector<std::vector<double>>> f(
-    _n_phases, std::vector<std::vector<double>>(_n_sides, std::vector<double>(Euler2Phase::n_local_eq)));
+  // compute conservative flux
+  std::vector<std::vector<double>> f_cons(_n_phases, std::vector<double>(Euler2Phase::n_local_eq));
   for (unsigned int k = 0; k < _n_phases; k++)
   {
     std::vector<double> W_riem(Euler2Phase::n_local_prim_var);
-    if (u_int < SM[k])
+    if (_u_int < SM[k])
     {
       if (S[k][L] > 0)
       {
@@ -111,7 +138,7 @@ void FluxEuler2PhaseHLLC::computeFlux(
 
         _last_region_indices[k] = 0;
       }
-      else if (u_int > 0)
+      else if (_u_int > 0)
       {
         W_riem = solutionSubsonic(W[k][L], S[k][L], SM[k]);
 
@@ -119,7 +146,7 @@ void FluxEuler2PhaseHLLC::computeFlux(
       }
       else if (SM[k] > 0)
       {
-        W_riem = solutionSubsonicInterfacialLeft(W[k][L], W[k][R], S[k][L], S[k][R], SM[k], p_int);
+        W_riem = solutionSubsonicInterfacialLeft(W[k][L], W[k][R], S[k][L], S[k][R], SM[k], _p_int);
 
         _last_region_indices[k] = 2;
       }
@@ -140,14 +167,14 @@ void FluxEuler2PhaseHLLC::computeFlux(
         std::stringstream ss;
         ss << "Riemann solver encountered a NaN:\n";
         ss << "  k = " << k << "\n";
-        ss << "  u_int = " << u_int << "\n";
+        ss << "  u_int = " << _u_int << "\n";
         ss << "  SL = " << S[k][L] << "\n";
         ss << "  SM = " << SM[k] << "\n";
         ss << "  SR = " << S[k][R] << "\n";
         for (unsigned int i = 0; i < _n_sides; i++)
         {
           ss << "  i = " << i << ":\n";
-          ss << "    a = " << a[k][i] << "\n";
+          ss << "    a = " << _a[k][i] << "\n";
           ss << "    r = " << r[k][i] << "\n";
           ss << "    u = " << u[k][i] << "\n";
           ss << "    E = " << E[k][i] << "\n";
@@ -158,7 +185,7 @@ void FluxEuler2PhaseHLLC::computeFlux(
         throwError(ss.str());
       }
     }
-    else if (u_int >= SM[k])
+    else if (_u_int >= SM[k])
     {
       if (S[k][L] > 0)
       {
@@ -172,9 +199,9 @@ void FluxEuler2PhaseHLLC::computeFlux(
 
         _last_region_indices[k] = 6;
       }
-      else if (u_int > 0)
+      else if (_u_int > 0)
       {
-        W_riem = solutionSubsonicInterfacialLeft(W[k][R], W[k][L], S[k][R], S[k][L], SM[k], p_int);
+        W_riem = solutionSubsonicInterfacialLeft(W[k][R], W[k][L], S[k][R], S[k][L], SM[k], _p_int);
 
         _last_region_indices[k] = 7;
       }
@@ -195,14 +222,14 @@ void FluxEuler2PhaseHLLC::computeFlux(
         std::stringstream ss;
         ss << "Riemann solver encountered a NaN:\n";
         ss << "  k = " << k << "\n";
-        ss << "  u_int = " << u_int << "\n";
+        ss << "  u_int = " << _u_int << "\n";
         ss << "  SL = " << S[k][L] << "\n";
         ss << "  SM = " << SM[k] << "\n";
         ss << "  SR = " << S[k][R] << "\n";
         for (unsigned int i = 0; i < _n_sides; i++)
         {
           ss << "  i = " << i << ":\n";
-          ss << "    a = " << a[k][i] << "\n";
+          ss << "    a = " << _a[k][i] << "\n";
           ss << "    r = " << r[k][i] << "\n";
           ss << "    u = " << u[k][i] << "\n";
           ss << "    E = " << E[k][i] << "\n";
@@ -218,14 +245,14 @@ void FluxEuler2PhaseHLLC::computeFlux(
       std::stringstream ss;
       ss << "Riemann solver encountered a NaN:\n";
       ss << "  k = " << k << "\n";
-      ss << "  u_int = " << u_int << "\n";
+      ss << "  u_int = " << _u_int << "\n";
       ss << "  SL = " << S[k][L] << "\n";
       ss << "  SM = " << SM[k] << "\n";
       ss << "  SR = " << S[k][R] << "\n";
       for (unsigned int i = 0; i < _n_sides; i++)
       {
         ss << "  i = " << i << ":\n";
-        ss << "    a = " << a[k][i] << "\n";
+        ss << "    a = " << _a[k][i] << "\n";
         ss << "    r = " << r[k][i] << "\n";
         ss << "    u = " << u[k][i] << "\n";
         ss << "    E = " << E[k][i] << "\n";
@@ -236,26 +263,10 @@ void FluxEuler2PhaseHLLC::computeFlux(
       throwError(ss.str());
     }
 
-    const std::vector<double> f_cons = Euler2Phase::computeConservativePhaseFlux(W_riem, u_int, p_int, A);
-    for (unsigned int i = 0; i < _n_sides; i++)
-      f[k][i] = Euler2Phase::combineFluxes(f_cons, f_noncons, a[k][i]);
+    f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W_riem, _u_int, _p_int, A);
   }
 
-  f_L[0] = f[liq][L][0];
-  f_L[1] = f[liq][L][1];
-  f_L[2] = f[liq][L][2];
-  f_L[3] = f[liq][L][3];
-  f_L[4] = f[vap][L][1];
-  f_L[5] = f[vap][L][2];
-  f_L[6] = f[vap][L][3];
-
-  f_R[0] = f[liq][R][0];
-  f_R[1] = f[liq][R][1];
-  f_R[2] = f[liq][R][2];
-  f_R[3] = f[liq][R][3];
-  f_R[4] = f[vap][R][1];
-  f_R[5] = f[vap][R][2];
-  f_R[6] = f[vap][R][3];
+  return f_cons;
 }
 
 std::vector<double> FluxEuler2PhaseHLLC::solutionSubsonic(

@@ -15,6 +15,11 @@ public:
     std::vector<double> & f_L,
     std::vector<double> & f_R) const override;
 
+  std::vector<std::vector<double>> computeConservativeFlux(
+    const std::vector<double> & U_L,
+    const std::vector<double> & U_R,
+    const double & A) const;
+
   std::vector<unsigned int> getLastRegionIndices() const {return _last_region_indices;}
 
 protected:
@@ -32,6 +37,9 @@ protected:
     const double & p_int) const;
 
   mutable std::vector<unsigned int> _last_region_indices;
+  mutable std::vector<std::vector<double>> _a;
+  mutable double _u_int;
+  mutable double _p_int;
 
   static const unsigned int _n_phases = 2;
   static const unsigned int liq = 0;
