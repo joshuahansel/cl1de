@@ -129,36 +129,49 @@ std::vector<std::vector<double>> FluxEuler2PhaseHLLC::computeConservativeFlux(
   std::vector<std::vector<double>> f_cons(_n_phases, std::vector<double>(Euler2Phase::n_local_eq));
   for (unsigned int k = 0; k < _n_phases; k++)
   {
-    std::vector<double> W_riem(Euler2Phase::n_local_prim_var);
     if (_u_int < SM[k])
     {
       if (S[k][L] > 0)
       {
-        W_riem = W[k][L];
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][L], _u_int, _p_int, A);
 
         _last_region_indices[k] = 0;
       }
       else if (_u_int > 0)
       {
-        W_riem = solutionSubsonic(W[k][L], S[k][L], SM[k]);
+        const auto UL = solutionSupersonic(W[k][L], A);
+        const auto Us = solutionSubsonic(W[k][L], S[k][L], SM[k], A);
+
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][L], _u_int, _p_int, A);
+        applyRankineHugoniot(f_cons[k], S[k][L], UL, Us);
 
         _last_region_indices[k] = 1;
       }
       else if (SM[k] > 0)
       {
-        W_riem = solutionSubsonicInterfacialLeft(W[k][L], W[k][R], S[k][L], S[k][R], SM[k], _p_int);
+        const auto UR = solutionSupersonic(W[k][R], A);
+        const auto Us = solutionSubsonic(W[k][R], S[k][R], SM[k], A);
+        const auto Uss = solutionSubsonicInterfacialLeft(W[k][L], W[k][R], S[k][L], S[k][R], SM[k], _p_int, A);
+
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][R], _u_int, _p_int, A);
+        applyRankineHugoniot(f_cons[k], S[k][R], UR, Us);
+        applyRankineHugoniot(f_cons[k], SM[k], Us, Uss);
 
         _last_region_indices[k] = 2;
       }
       else if (S[k][R] > 0)
       {
-        W_riem = solutionSubsonic(W[k][R], S[k][R], SM[k]);
+        const auto UR = solutionSupersonic(W[k][R], A);
+        const auto Us = solutionSubsonic(W[k][R], S[k][R], SM[k], A);
+
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][R], _u_int, _p_int, A);
+        applyRankineHugoniot(f_cons[k], S[k][R], UR, Us);
 
         _last_region_indices[k] = 3;
       }
       else if (S[k][R] <= 0)
       {
-        W_riem = W[k][R];
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][R], _u_int, _p_int, A);
 
         _last_region_indices[k] = 4;
       }
@@ -189,31 +202,45 @@ std::vector<std::vector<double>> FluxEuler2PhaseHLLC::computeConservativeFlux(
     {
       if (S[k][L] > 0)
       {
-        W_riem = W[k][L];
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][L], _u_int, _p_int, A);
 
         _last_region_indices[k] = 5;
       }
       else if (SM[k] > 0)
       {
-        W_riem = solutionSubsonic(W[k][L], S[k][L], SM[k]);
+        const auto UL = solutionSupersonic(W[k][L], A);
+        const auto Us = solutionSubsonic(W[k][L], S[k][L], SM[k], A);
+
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][L], _u_int, _p_int, A);
+        applyRankineHugoniot(f_cons[k], S[k][L], UL, Us);
 
         _last_region_indices[k] = 6;
       }
       else if (_u_int > 0)
       {
-        W_riem = solutionSubsonicInterfacialLeft(W[k][R], W[k][L], S[k][R], S[k][L], SM[k], _p_int);
+        const auto UL = solutionSupersonic(W[k][L], A);
+        const auto Us = solutionSubsonic(W[k][L], S[k][L], SM[k], A);
+        const auto Uss = solutionSubsonicInterfacialLeft(W[k][R], W[k][L], S[k][R], S[k][L], SM[k], _p_int, A);
+
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][L], _u_int, _p_int, A);
+        applyRankineHugoniot(f_cons[k], S[k][L], UL, Us);
+        applyRankineHugoniot(f_cons[k], SM[k], Us, Uss);
 
         _last_region_indices[k] = 7;
       }
       else if (S[k][R] > 0)
       {
-        W_riem = solutionSubsonic(W[k][R], S[k][R], SM[k]);
+        const auto UR = solutionSupersonic(W[k][R], A);
+        const auto Us = solutionSubsonic(W[k][R], S[k][R], SM[k], A);
+
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][R], _u_int, _p_int, A);
+        applyRankineHugoniot(f_cons[k], S[k][R], UR, Us);
 
         _last_region_indices[k] = 8;
       }
       else if (S[k][R] <= 0)
       {
-        W_riem = W[k][R];
+        f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W[k][R], _u_int, _p_int, A);
 
         _last_region_indices[k] = 9;
       }
@@ -262,17 +289,33 @@ std::vector<std::vector<double>> FluxEuler2PhaseHLLC::computeConservativeFlux(
       }
       throwError(ss.str());
     }
-
-    f_cons[k] = Euler2Phase::computeConservativePhaseFlux(W_riem, _u_int, _p_int, A);
   }
 
   return f_cons;
 }
 
+std::vector<double> FluxEuler2PhaseHLLC::solutionSupersonic(
+  const std::vector<double> & W, const double & A) const
+{
+  const double & a = W[Euler2Phase::ia];
+  const double & r = W[Euler2Phase::ir];
+  const double & u = W[Euler2Phase::iu];
+  const double & E = W[Euler2Phase::iE];
+
+  std::vector<double> U(Euler2Phase::n_local_eq);
+  U[0] = a * A;
+  U[1] = a * r * A;
+  U[2] = a * r * u * A;
+  U[3] = a * r * E * A;
+
+  return U;
+}
+
 std::vector<double> FluxEuler2PhaseHLLC::solutionSubsonic(
   const std::vector<double> & W,
   const double & S,
-  const double & SM
+  const double & SM,
+  const double & A
 ) const
 {
   const double & a = W[Euler2Phase::ia];
@@ -287,14 +330,13 @@ std::vector<double> FluxEuler2PhaseHLLC::solutionSubsonic(
   const double ps = p + r * (u - S) * (u - SM);
   const double Es = E + (p * u - ps * SM) / (r * (u - S));
 
-  std::vector<double> Ws(Euler2Phase::n_local_prim_var);
-  Ws[Euler2Phase::ia] = as;
-  Ws[Euler2Phase::ir] = rs;
-  Ws[Euler2Phase::iu] = us;
-  Ws[Euler2Phase::ip] = ps;
-  Ws[Euler2Phase::iE] = Es;
+  std::vector<double> Us(Euler2Phase::n_local_eq);
+  Us[0] = as * A;
+  Us[1] = as * rs * A;
+  Us[2] = as * rs * us * A;
+  Us[3] = as * rs * Es * A;
 
-  return Ws;
+  return Us;
 }
 
 std::vector<double> FluxEuler2PhaseHLLC::solutionSubsonicInterfacialLeft(
@@ -303,30 +345,43 @@ std::vector<double> FluxEuler2PhaseHLLC::solutionSubsonicInterfacialLeft(
   const double & SL,
   const double & SR,
   const double & SM,
-  const double & p_int
+  const double & p_int,
+  const double & A
 ) const
 {
-  const auto WsL = solutionSubsonic(WL, SL, SM);
-  const auto WsR = solutionSubsonic(WR, SR, SM);
+  const double & aL = WL[Euler2Phase::ia];
+  const double & rL = WL[Euler2Phase::ir];
+  const double & uL = WL[Euler2Phase::iu];
+  const double & pL = WL[Euler2Phase::ip];
+  const double & EL = WL[Euler2Phase::iE];
 
-  const double & asL = WsL[Euler2Phase::ia];
-  const double & asR = WsR[Euler2Phase::ia];
-  const double & rsL = WsL[Euler2Phase::ir];
-  const double & psR = WsR[Euler2Phase::ip];
-  const double & EsL = WsL[Euler2Phase::iE];
+  const double asL = aL;
+  const double asR = WR[Euler2Phase::ia];
+  const double rsL = rL * (uL - SL) / (SM - SL);
+  const double psL = pL + rL * (uL - SL) * (uL - SM);
+  const double EsL = EL + (pL * uL - psL * SM) / (rL * (uL - SL));
 
   const double ass = asR;
   const double rss = (asL * rsL) / ass;
   const double uss = SM;
-  const double pss = psR;
   const double Ess = EsL - (asR - asL) / (asL * rsL) * p_int;
 
-  std::vector<double> Wss(Euler2Phase::n_local_prim_var);
-  Wss[Euler2Phase::ia] = ass;
-  Wss[Euler2Phase::ir] = rss;
-  Wss[Euler2Phase::iu] = uss;
-  Wss[Euler2Phase::ip] = pss;
-  Wss[Euler2Phase::iE] = Ess;
+  std::vector<double> Uss(Euler2Phase::n_local_eq);
+  Uss[0] = ass * A;
+  Uss[1] = ass * rss * A;
+  Uss[2] = ass * rss * uss * A;
+  Uss[3] = ass * rss * Ess * A;
 
-  return Wss;
+  return Uss;
+}
+
+void FluxEuler2PhaseHLLC::applyRankineHugoniot(
+  std::vector<double> & flux,
+  const double & S,
+  const std::vector<double> & U1,
+  const std::vector<double> & U2
+) const
+{
+  for (unsigned int i = 0; i < Euler2Phase::n_local_eq; i++)
+    flux[i] += S * (U2[i] - U1[i]);
 }
