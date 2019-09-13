@@ -15,6 +15,8 @@ public:
     std::vector<double> & f_L,
     std::vector<double> & f_R) const override;
 
+  std::vector<unsigned int> getLastRegionIndices() const {return _last_region_indices;}
+
 protected:
   std::vector<double> solutionSubsonic(
     const std::vector<double> & W,
@@ -28,7 +30,9 @@ protected:
     const double & SR,
     const double & SM,
     const double & p_int) const;
-  
+
+  mutable std::vector<unsigned int> _last_region_indices;
+
   static const unsigned int _n_phases = 2;
   static const unsigned int liq = 0;
   static const unsigned int vap = 1;

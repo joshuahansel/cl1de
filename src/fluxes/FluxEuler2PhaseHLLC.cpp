@@ -8,7 +8,7 @@
 #include <sstream>
 
 FluxEuler2PhaseHLLC::FluxEuler2PhaseHLLC(const EOS1Phase & eos_liq, const EOS1Phase & eos_vap)
-  : FluxEuler2Phase(eos_liq, eos_vap)
+  : FluxEuler2Phase(eos_liq, eos_vap), _last_region_indices(_n_phases)
 {
 }
 
@@ -106,15 +106,35 @@ void FluxEuler2PhaseHLLC::computeFlux(
     if (u_int < SM[k])
     {
       if (S[k][L] > 0)
+      {
         W_riem = W[k][L];
+
+        _last_region_indices[k] = 0;
+      }
       else if (u_int > 0)
+      {
         W_riem = solutionSubsonic(W[k][L], S[k][L], SM[k]);
+
+        _last_region_indices[k] = 1;
+      }
       else if (SM[k] > 0)
+      {
         W_riem = solutionSubsonicInterfacialLeft(W[k][L], W[k][R], S[k][L], S[k][R], SM[k], p_int);
+
+        _last_region_indices[k] = 2;
+      }
       else if (S[k][R] > 0)
+      {
         W_riem = solutionSubsonic(W[k][R], S[k][R], SM[k]);
+
+        _last_region_indices[k] = 3;
+      }
       else if (S[k][R] <= 0)
+      {
         W_riem = W[k][R];
+
+        _last_region_indices[k] = 4;
+      }
       else
       {
         std::stringstream ss;
@@ -141,15 +161,35 @@ void FluxEuler2PhaseHLLC::computeFlux(
     else if (u_int >= SM[k])
     {
       if (S[k][L] > 0)
+      {
         W_riem = W[k][L];
+
+        _last_region_indices[k] = 5;
+      }
       else if (SM[k] > 0)
+      {
         W_riem = solutionSubsonic(W[k][L], S[k][L], SM[k]);
+
+        _last_region_indices[k] = 6;
+      }
       else if (u_int > 0)
+      {
         W_riem = solutionSubsonicInterfacialLeft(W[k][R], W[k][L], S[k][R], S[k][L], SM[k], p_int);
+
+        _last_region_indices[k] = 7;
+      }
       else if (S[k][R] > 0)
+      {
         W_riem = solutionSubsonic(W[k][R], S[k][R], SM[k]);
+
+        _last_region_indices[k] = 8;
+      }
       else if (S[k][R] <= 0)
+      {
         W_riem = W[k][R];
+
+        _last_region_indices[k] = 9;
+      }
       else
       {
         std::stringstream ss;
