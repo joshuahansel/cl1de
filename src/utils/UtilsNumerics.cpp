@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <algorithm>
+#include <cmath>
 
 namespace Numerics
 {
@@ -15,7 +16,7 @@ namespace Numerics
     const double ab = a * b;
     if (ab <= 0)
       return 0;
-    else if (std::abs(a) < std::abs(b))
+    else if (std::fabs(a) < std::fabs(b))
       return a;
     else
       return b;
@@ -36,7 +37,7 @@ namespace Numerics
     const double ab = a * b;
     if (ab <= 0)
       return 0;
-    else if (std::abs(a) < std::abs(b))
+    else if (std::fabs(a) < std::fabs(b))
       return b;
     else
       return a;

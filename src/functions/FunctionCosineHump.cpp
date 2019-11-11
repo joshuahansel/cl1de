@@ -1,7 +1,7 @@
 #include "FunctionCosineHump.h"
 #include "PhysicsConstants.h"
 
-#include <math.h>
+#include <cmath>
 
 FunctionCosineHump::FunctionCosineHump(
   const double & value_begin,

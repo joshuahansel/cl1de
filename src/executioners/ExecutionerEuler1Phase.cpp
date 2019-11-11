@@ -9,6 +9,7 @@
 #include "Function.h"
 #include "EOS1Phase.h"
 #include "CSVOutput.h"
+#include <cmath>
 
 ExecutionerEuler1Phase::ExecutionerEuler1Phase(
   const ProblemEuler1Phase & problem,
@@ -58,7 +59,7 @@ double ExecutionerEuler1Phase::computeMaxWaveSpeed(const std::vector<double> & U
     const double E = U[i_rEA] / U[i_rA];
     const double e = E - 0.5 * u * u;
     const double c = _eos.c_from_r_e(r, e);
-    max_wave_speed = std::max(max_wave_speed, std::abs(u) + c);
+    max_wave_speed = std::max(max_wave_speed, std::fabs(u) + c);
   }
   return max_wave_speed;
 }

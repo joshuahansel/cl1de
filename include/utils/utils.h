@@ -3,8 +3,8 @@
 
 #include <string>
 
-void throwError(const std::string & message);
-void throwError(const std::string & message, const std::string & prefix);
-void throwInvalidStringParameterValueError(const std::string & parameter, const std::string & value);
+[[noreturn]] void throwError(const std::string & message);
+[[noreturn]] void throwError(const std::string & message, const std::string & prefix);
+[[noreturn]] void throwInvalidStringParameterValueError(const std::string & parameter, const std::string & value);
 
 #endif /* utils_H */
