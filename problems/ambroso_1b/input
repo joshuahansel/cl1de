@@ -1,0 +1,11 @@
+n_elem 300
+temporal_order 1
+dt_option cfl
+cfl 0.8
+flux hllc
+slope_reconstruction none
+use_finite_velocity_relaxation false
+use_finite_pressure_relaxation false
+n_source_substeps 1
+use_infinite_velocity_relaxation false
+use_infinite_pressure_relaxation false
