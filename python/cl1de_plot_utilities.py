@@ -8,7 +8,7 @@ def plotDataSets(data_sets, data_names):
     for i, data_set in enumerate(data_sets):
       set_name, data = data_set
       plotter.addSet(data["x"], data[var], set_name, color=i)
-    plotter.save(var + ".pdf")
+    plotter.save(var + ".png")
 
 euler1phase_data_names = {
   "r": ("Density", "\\rho"),
