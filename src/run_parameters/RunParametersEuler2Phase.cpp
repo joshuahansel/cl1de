@@ -1,5 +1,6 @@
 #include "RunParametersEuler2Phase.h"
 #include "EOS1Phase.h"
+#include "FluxEuler2PhaseDEM.h"
 #include "FluxEuler2PhaseHLLC.h"
 #include "ReconstructorEuler2PhaseGodunov.h"
 #include "ReconstructorEuler2PhaseSlopePUTFull.h"
@@ -19,6 +20,8 @@ RunParametersEuler2Phase::RunParametersEuler2Phase(
   const std::string flux_option = getStringParameter("flux");
   if (flux_option == "hllc")
     _flux = std::make_shared<FluxEuler2PhaseHLLC>(_eos_liq, _eos_vap);
+  else if (flux_option == "dem")
+    _flux = std::make_shared<FluxEuler2PhaseDEM>(_eos_liq, _eos_vap);
   else
     throwInvalidStringParameterValueError("flux", flux_option);
 
